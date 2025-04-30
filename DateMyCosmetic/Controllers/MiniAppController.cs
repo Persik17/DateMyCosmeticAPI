@@ -1,6 +1,7 @@
+using DateMyCosmeticAPI.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 
-namespace DateMyCosmetic.Controllers
+namespace DateMyCosmeticAPI.Controllers
 {
     [ApiController]
     [Route("[controller]")]
@@ -14,7 +15,7 @@ namespace DateMyCosmetic.Controllers
         }
 
         [HttpPost("SaveData")]
-        public async Task<IActionResult> SaveData([FromBody] CosmeticDataModel data)
+        public async Task<IActionResult> SaveData([FromBody] CosmeticViewModel data)
         {
             if (data == null)
             {
@@ -36,13 +37,6 @@ namespace DateMyCosmetic.Controllers
             //var data = new YourDataModel { SomeProperty = "Example Data" };
 
             return Ok(/*data*/);
-        }
-
-        public class CosmeticDataModel
-        {
-            public string Name { get; set; }
-            public DateTime OpeningDate { get; set; }
-            public DateTime ExpirationDate { get; set; }
         }
     }
 }
