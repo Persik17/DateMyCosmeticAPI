@@ -1,6 +1,7 @@
 using AutoMapper;
 using BusinessLayer.DTOs;
 using BusinessLayer.Interfaces;
+using BusinessLayer.Services;
 using DateMyCosmeticAPI.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,13 +13,28 @@ namespace DateMyCosmeticAPI.Controllers
     {
         private readonly ICosmeticService _cosmeticService;
         private readonly ITelegramAccountService _telegramAccountService;
+        private readonly ITelegramAuthService _telegramAuthService;
         private readonly IMapper _mapper;
 
-        public MiniAppController(ICosmeticService cosmeticService, ITelegramAccountService telegramAccountService, IMapper mapper)
+        public MiniAppController(ICosmeticService cosmeticService, ITelegramAccountService telegramAccountService, ITelegramAuthService telegramAuthService, IMapper mapper)
         {
             _cosmeticService = cosmeticService;
             _telegramAccountService = telegramAccountService;
+            _telegramAuthService = telegramAuthService;
             _mapper = mapper;
+        }
+
+        [HttpPost("verifyTelegramData")]
+        public IActionResult VerifyTelegramData([FromBody] TelegramWebAppInitData data)
+        {
+            if (_telegramAuthService.ValidateTelegramWebAppHash(data.InitData, data.Hash))
+            {
+                return Ok(new { message = "Telegram data is valid" });
+            }
+            else
+            {
+                return BadRequest(new { message = "Telegram data is invalid" });
+            }
         }
 
         [HttpGet("cosmetics/{id}")]
@@ -79,19 +95,20 @@ namespace DateMyCosmeticAPI.Controllers
         }
 
         [HttpPost("telegramAccount")]
-        public async Task<IActionResult> AddTelegramAccount([FromBody] TelegramAccountDTO accountDTO)
+        public async Task<IActionResult> AddTelegramAccount([FromBody] TelegramAccountViewModel telegramAccountViewModel)
         {
             try
             {
                 // Check if the Telegram account already exists.
-                var existingAccount = await _telegramAccountService.GetTelegramAccountAsync(accountDTO.TelegramId.ToString());
+                var existingAccount = await _telegramAccountService.GetTelegramAccountAsync(telegramAccountViewModel.TelegramId.ToString());
                 if (existingAccount != null)
                 {
                     return Conflict("Telegram account already exists.");
                 }
 
-                await _telegramAccountService.AddTelegramAccountAsync(accountDTO);
-                return CreatedAtAction(nameof(GetTelegramAccount), new { telegramId = accountDTO.TelegramId }, accountDTO);
+                var telegramAccountDTO = _mapper.Map<TelegramAccountDTO>(telegramAccountViewModel);
+                await _telegramAccountService.AddTelegramAccountAsync(telegramAccountDTO);
+                return CreatedAtAction(nameof(GetTelegramAccount), new { telegramId = telegramAccountDTO.TelegramId }, telegramAccountDTO);
             }
             catch (Exception ex)
             {

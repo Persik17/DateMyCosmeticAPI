@@ -3,7 +3,6 @@ using DataAccessLayer.Repositories;
 using BusinessLayer.Interfaces;
 using BusinessLayer.Services;
 using System.Reflection;
-using AutoMapper;
 using Microsoft.OpenApi.Models;
 using DataAccessLayer.Configuration;
 using Microsoft.Extensions.Options;
@@ -36,12 +35,14 @@ builder.Services.AddScoped<TelegramAccountRepository>();
 // Services
 builder.Services.AddScoped<ICosmeticService, CosmeticService>();
 builder.Services.AddScoped<ITelegramAccountService, TelegramAccountService>();
+builder.Services.AddScoped<ITelegramAuthService, TelegramAuthService>();
 
 // AutoMapper Configuration
 builder.Services.AddAutoMapper(cfg => {
     cfg.CreateMap<Cosmetic, CosmeticDTO>().ReverseMap();
     cfg.CreateMap<CosmeticDTO, CosmeticViewModel>().ReverseMap();
     cfg.CreateMap<TelegramAccount, TelegramAccountDTO>().ReverseMap();
+    cfg.CreateMap<TelegramAccountDTO, TelegramAccountViewModel>().ReverseMap();
 }, typeof(Program));
 
 var app = builder.Build();
