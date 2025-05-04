@@ -1,7 +1,12 @@
-﻿namespace BusinessLayer.DTOs
+﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
+
+namespace DataAccessLayer.DataModels
 {
-    public class CosmeticDTO
+    public class Cosmetic
     {
+        [BsonId]
+        [BsonRepresentation(BsonType.ObjectId)]
         public string Id { get; set; }
         public string TelegramAccountId { get; set; }
         public string Name { get; set; }

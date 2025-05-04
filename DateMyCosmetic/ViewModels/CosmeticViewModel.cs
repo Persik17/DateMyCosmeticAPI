@@ -2,10 +2,8 @@
 {
     public class CosmeticViewModel
     {
-        public Guid Id { get; set; }
-        public required string Name { get; set; }
-        public DateTime OpeningDate { get; set; }
-        public DateTime ExpirationDate { get; set; }
-        public Guid UserId { get; set; }
+        public string Name { get; set; }
+        public DateTime ExpiryDate { get; set; }
+        public DateTime? OpenedDate { get; set; }
     }
 }
