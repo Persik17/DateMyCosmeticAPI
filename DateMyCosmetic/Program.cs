@@ -1,36 +1,63 @@
+using DataAccessLayer.Contexts;
+using DataAccessLayer.Repositories;
+using BusinessLayer.Interfaces;
+using BusinessLayer.Services;
+using System.Reflection;
+using AutoMapper;
+using Microsoft.OpenApi.Models;
+using DataAccessLayer.Configuration;
+using Microsoft.Extensions.Options;
+using BusinessLayer.DTOs;
+using DataAccessLayer.DataModels;
+using DateMyCosmeticAPI.ViewModels;
+
 var builder = WebApplication.CreateBuilder(args);
 
+// Configuration
+builder.Services.Configure<MongoSettings>(builder.Configuration.GetSection("MongoSettings"));
+builder.Services.AddSingleton<IMongoSettings>(sp => sp.GetRequiredService<IOptions<MongoSettings>>().Value);
 // Add services to the container.
-
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
-builder.Services.AddCors(options =>
+builder.Services.AddSwaggerGen(c =>
 {
-    options.AddPolicy("TelegramAppPolicy", builder =>
-    {
-        builder.WithOrigins("http://localhost:4200")
-               .AllowAnyMethod()
-               .AllowAnyHeader();
-    });
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "DateMyCosmeticAPI", Version = "v1" });
 });
+
+// Register the AutoMapper profiles
+builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
+
+// MongoDB Context
+builder.Services.AddSingleton<MongoContext>();
+
+// Repositories
+builder.Services.AddScoped<CosmeticRepository>();
+builder.Services.AddScoped<TelegramAccountRepository>();
+
+// Services
+builder.Services.AddScoped<ICosmeticService, CosmeticService>();
+builder.Services.AddScoped<ITelegramAccountService, TelegramAccountService>();
+
+// AutoMapper Configuration
+builder.Services.AddAutoMapper(cfg => {
+    cfg.CreateMap<Cosmetic, CosmeticDTO>().ReverseMap();
+    cfg.CreateMap<CosmeticDTO, CosmeticViewModel>().ReverseMap();
+    cfg.CreateMap<TelegramAccount, TelegramAccountDTO>().ReverseMap();
+}, typeof(Program));
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    app.UseDeveloperExceptionPage();
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "DateMyCosmeticAPI v1"));
 }
 
-app.UseCors("TelegramAppPolicy");
 app.UseHttpsRedirection();
+app.UseRouting();
 
 app.UseAuthorization();
-
 
 app.MapControllers();
 
